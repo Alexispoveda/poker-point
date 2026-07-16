@@ -1,87 +1,53 @@
-# Welcome to React Router!
+# Point Poker
 
-A modern, production-ready template for building full-stack React applications using React Router.
+## Goal
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/remix-run/react-router-templates/tree/main/default)
+The goal of this project is to create a simple, easy to use, and free online tool for planning poker. Planning poker is a consensus-based technique for estimating, mostly used to estimate effort or relative size of development goals in software development.
 
-## Features
+## MVP
 
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
+### Data Model
 
-## Getting Started
+#### Participants: The people who join the game. Can point and see the points of other participants. Can be moderator
+{
+    id: string; (browser related)
+    name: string;
+    vote: string | null; (if null, the participant has not pointed yet)
+}
+#### Room: Where the pointing takes place. Participants can join the room by entering the room code. The room code is a random 6 character string. The room code is displayed to the participants.
+{
+    code: string;
+    participants: {
+        [participantId: string]: Participant;
+    };
+    revealVotes: boolean;
+    moderators: string[]; (array of participant ids)
+    createdAt: number; (timestamp for Firebase TTL)
+}
 
-### Installation
+### Rules and scope
+- When a participant opens the application for the first time, a random UUID is generated and stored in localStorage. This identifier is reused across visits from the same browser.
+- There will be no authentication or user accounts. The "identity" will be browser based. The participant will be identified by the browser they are using. If the participant opens the game in a different browser, they will be treated as a different participant.
+- Participants can see if other participants have pointed, but not what they pointed until the moderator reveals the points.
+- Available points: 1, 2, 3, 5, 8, ?, ☕️ (pass)
+- Everyone can be moderator. For easy setup, the particpant that creates the room will be the moderator. Joiners will not be moderators by default. For practicality, everyone can be self appointed moderator.
+- Everyone can change their name. The name is not unique. There can be multiple participants with the same name.
+- Resetting points sets revealVotes to false and clears all participant votes (vote = null).
+- Rooms are part of the URL
 
-Install the dependencies:
+### Flows
+- Room creation flow: Participant enters their name -> Participant creates a room -> Participant is set as moderator -> Code is displayed
+- Joining room flow: Participant enters the room code -> Participant enters their name -> Participant joins the room
+- Pointing flow: Participants point -> Moderator reveals the points -> Moderator resets the points -> Participants point again
 
-```bash
-npm install
-```
+### Pages
+- Home page: Create or join a room
+- Pointing page: Displays the room code, participants, and points. Moderator controls are available to reveal and reset points.
 
-### Development
 
-Start the development server with HMR:
+## Tech stack
+- Frontend: React, Material UI
+- Backend: Firebase (Firestore)
 
-```bash
-npm run dev
-```
-
-Your application will be available at `http://localhost:5173`.
-
-## Building for Production
-
-Create a production build:
-
-```bash
-npm run build
-```
-
-## Deployment
-
-### Docker Deployment
-
-To build and run using Docker:
-
-```bash
-docker build -t my-app .
-
-# Run the container
-docker run -p 3000:3000 my-app
-```
-
-The containerized application can be deployed to any platform that supports Docker, including:
-
-- AWS ECS
-- Google Cloud Run
-- Azure Container Apps
-- Digital Ocean App Platform
-- Fly.io
-- Railway
-
-### DIY Deployment
-
-If you're familiar with deploying Node applications, the built-in app server is production-ready.
-
-Make sure to deploy the output of `npm run build`
-
-```
-├── package.json
-├── package-lock.json (or pnpm-lock.yaml, or bun.lockb)
-├── build/
-│   ├── client/    # Static assets
-│   └── server/    # Server-side code
-```
-
-## Styling
-
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
-
----
-
-Built with ❤️ using React Router.
+## Future improvements
+- Change available points to be configurable by the moderator

@@ -1,0 +1,30 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isValidRoom(roomCode, data) {
+      return data.keys().hasOnly(['code', 'participants', 'revealVotes', 'moderators', 'createdAt'])
+        && data.code == roomCode
+        && data.participants is map
+        && data.revealVotes is bool
+        && data.moderators is list
+        && data.createdAt is timestamp;
+    }
+
+    match /rooms/{roomCode} {
+      allow read: if true;
+
+      allow create: if isValidRoom(roomCode, request.resource.data);
+
+      allow update: if isValidRoom(roomCode, request.resource.data)
+                    && request.resource.data.code == resource.data.code;
+
+      // No client-side deletes — let a TTL policy on `createdAt` clean up old rooms.
+      allow delete: if false;
+    }
+
+    // Everything else is denied by default (Firestore's default behavior) —
+    // no need to write it explicitly.
+  }
+}
